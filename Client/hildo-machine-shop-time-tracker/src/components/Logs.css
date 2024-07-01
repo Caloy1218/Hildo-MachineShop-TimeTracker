@@ -1,0 +1,12 @@
+.logs-container {
+    padding: 20px;
+  }
+  
+  .logs-container h2 {
+    margin-bottom: 20px;
+  }
+  
+  .logs-container .MuiDataGrid-root {
+    background-color: white;
+  }
+  
