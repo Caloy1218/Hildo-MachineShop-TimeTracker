@@ -2,15 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { db } from '../firebaseConfig';
 import { collection, getDocs, deleteDoc, doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { DataGrid } from '@mui/x-data-grid';
-import { Button, IconButton, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Box } from '@mui/material';
+import { Button, IconButton, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Box, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import dayjs from 'dayjs';
-import './Logs.css'; // Import CSS file
 
 const Logs = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
   const [logs, setLogs] = useState([]);
   const [filteredLogs, setFilteredLogs] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
@@ -106,29 +108,24 @@ const Logs = () => {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <div className="logs-container">
-        <h2>Check-in/Check-out Logs</h2>
+      <Box p={2}>
+        <Typography variant="h4" gutterBottom>Check-in/Check-out Logs</Typography>
         <Box mb={2}>
           <DatePicker
             label="Select Date"
             value={selectedDate}
             onChange={(newValue) => setSelectedDate(newValue)}
-            textField={<TextField />}
+            renderInput={(params) => <TextField {...params} />}
           />
         </Box>
-        <div style={{ height: 400, width: '100%' }}>
-          <DataGrid
-            rows={filteredLogs}
-            columns={columns}
-            pageSize={5}
-            rowsPerPageOptions={[5, 10, 20]}
-          />
+        <div style={{ height: isMobile ? 300 : 400, width: '100%', marginBottom: 20 }}>
+          <DataGrid rows={filteredLogs} columns={columns} pageSize={5} />
         </div>
         <Dialog open={openDialog} onClose={handleCloseDialog}>
           <DialogTitle>Edit Log</DialogTitle>
           <DialogContent>
             <DialogContentText>
-              Please edit the log details below:
+              Edit the name for this log entry.
             </DialogContentText>
             <TextField
               autoFocus
@@ -136,20 +133,17 @@ const Logs = () => {
               label="Full Name"
               type="text"
               fullWidth
+              variant="standard"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseDialog} color="primary">
-              Cancel
-            </Button>
-            <Button onClick={handleSubmit} color="primary">
-              Save
-            </Button>
+            <Button onClick={handleCloseDialog}>Cancel</Button>
+            <Button onClick={handleSubmit}>Save</Button>
           </DialogActions>
         </Dialog>
-      </div>
+      </Box>
     </LocalizationProvider>
   );
 };

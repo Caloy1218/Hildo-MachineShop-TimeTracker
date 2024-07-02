@@ -1,23 +1,13 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import QrScanner from 'react-qr-scanner';
+import { db } from '../firebaseConfig';
 import { collection, addDoc, query, where, getDocs, updateDoc, Timestamp } from 'firebase/firestore';
 import debounce from 'lodash/debounce';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Typography,
-  Box,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box, useMediaQuery, useTheme } from '@mui/material';
 import FlipCameraIosIcon from '@mui/icons-material/FlipCameraIos';
-import './QRScanner.css'; // Import CSS file
-import { db } from '../firebaseConfig';
+import './QRScanner.css';
 
-const QRScanner = () => {
+const QrScannerComponent = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -29,24 +19,6 @@ const QRScanner = () => {
   const [dialogMessage, setDialogMessage] = useState('');
   const [facingMode, setFacingMode] = useState('environment');
   const [borderColor, setBorderColor] = useState('red');
-  const [members, setMembers] = useState([]);
-
-  useEffect(() => {
-    fetchMembers();
-  }, []);
-
-  const fetchMembers = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, 'members'));
-      const membersData = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setMembers(membersData);
-    } catch (error) {
-      console.error('Error fetching members:', error);
-    }
-  };
 
   const processScan = async (data) => {
     if (data && data !== lastScanned && !isProcessingScan) {
@@ -55,41 +27,34 @@ const QRScanner = () => {
       setResult(data);
       setIsCameraActive(false);
       setBorderColor('green'); // Change border color to green when QR is read
-
+  
       try {
-        const foundMember = members.find((member) => member.id === data);
-
-        if (foundMember) {
-          const logRef = collection(db, 'logs');
-          const logQuery = query(logRef, where('memberId', '==', foundMember.id), where('timeOut', '==', null));
-          const logSnapshot = await getDocs(logQuery);
-
-          if (!logSnapshot.empty) {
-            const logDoc = logSnapshot.docs[0];
-            await updateDoc(logDoc.ref, {
-              timeOut: Timestamp.now(),
-            });
-            setDialogMessage(`${foundMember.name} checked out successfully!`);
-          } else {
-            await addDoc(logRef, {
-              memberId: foundMember.id,
-              fullName: foundMember.name,
-              timeIn: Timestamp.now(),
-              timeOut: null,
-            });
-            setDialogMessage(`${foundMember.name} checked in successfully!`);
-          }
-
-          setDialogOpen(true);
+        const fullName = data; // Assuming data directly provides the fullName
+  
+        const q = query(collection(db, 'logs'), where('fullName', '==', fullName), where('timeOut', '==', null));
+        const querySnapshot = await getDocs(q);
+  
+        if (!querySnapshot.empty) {
+          const logDoc = querySnapshot.docs[0];
+          await updateDoc(logDoc.ref, {
+            timeOut: Timestamp.now(),
+          });
+          setDialogMessage(`${fullName} timed out successfully!`);
         } else {
-          setDialogMessage("Member not found.");
-          setDialogOpen(true);
+          await addDoc(collection(db, 'logs'), {
+            fullName,
+            timeIn: Timestamp.now(),
+            timeOut: null,
+          });
+          setDialogMessage(`${fullName} timed in successfully!`);
         }
+  
+        setDialogOpen(true);
       } catch (error) {
-        console.error('Error processing QR code:', error);
-        alert('Error processing QR code. Please try again.');
+        console.error("Error processing QR code.", error);
+        alert('Error processing QR code.');
       }
-
+  
       setTimeout(() => {
         setIsProcessingScan(false);
         setLastScanned('');
@@ -98,7 +63,7 @@ const QRScanner = () => {
     }
   };
 
-  const debouncedProcessScan = useCallback(debounce(processScan, 500), [lastScanned, isProcessingScan, members]);
+  const debouncedProcessScan = debounce(processScan, 500);
 
   const handleResult = (result) => {
     if (result) {
@@ -107,8 +72,8 @@ const QRScanner = () => {
   };
 
   const handleError = (error) => {
-    console.error('QR Scanner Error:', error);
-    alert('An error occurred while scanning. Please try again.');
+    console.error("QR Scanner Error:", error);
+    alert("An error occurred while scanning. Please try again.");
   };
 
   const handleDialogClose = () => {
@@ -121,20 +86,24 @@ const QRScanner = () => {
   };
 
   const toggleCamera = () => {
-    setFacingMode((prevMode) => (prevMode === 'environment' ? 'user' : 'environment'));
+    setFacingMode(prevMode => (prevMode === 'environment' ? 'user' : 'environment'));
   };
 
   const previewStyle = {
     height: 240,
     width: isMobile ? '100%' : 320,
-    border: `5px solid ${borderColor}`, // Corrected border style here
+    border: `4px solid ${borderColor}`, // Use dynamic border color
+    borderRadius: 8,
+    marginBottom: 10,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
   };
 
   return (
     <div className="qr-scanner-container">
-      <Typography variant="h4" gutterBottom align="center">
-        QR Code Scanner
-      </Typography>
+      <Typography variant="h4" gutterBottom align="center">QR Code Scanner</Typography>
       <Button variant="contained" color="primary" onClick={startScanner} disabled={isCameraActive}>
         Start Scanning
       </Button>
@@ -142,16 +111,15 @@ const QRScanner = () => {
         <Box className="qr-reader-wrapper">
           <QrScanner
             delay={100}
-            onError={handleError}
             onScan={handleResult}
+            onError={handleError}
             style={previewStyle}
             facingMode={facingMode}
           />
           {isMobile && (
-            <Button
-              variant="contained"
-              color="secondary"
-              onClick={toggleCamera}
+            <Button 
+              variant="contained" 
+              onClick={toggleCamera} 
               startIcon={<FlipCameraIosIcon />}
               className="flip-camera-button"
             >
@@ -171,13 +139,11 @@ const QRScanner = () => {
           <Typography>{dialogMessage}</Typography>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDialogClose} color="primary">
-            Close
-          </Button>
+          <Button onClick={handleDialogClose} color="primary">Close</Button>
         </DialogActions>
       </Dialog>
     </div>
   );
 };
 
-export default QRScanner;
+export default QrScannerComponent;

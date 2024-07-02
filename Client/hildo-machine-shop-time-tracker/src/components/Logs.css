@@ -1,12 +1,21 @@
 .logs-container {
-    padding: 20px;
+  padding: 20px;
+}
+
+.logs-container h2 {
+  margin-bottom: 20px;
+}
+
+.logs-container .MuiDataGrid-root {
+  background-color: white;
+}
+
+@media (max-width: 600px) {
+  .logs-container {
+    padding: 10px;
   }
-  
+
   .logs-container h2 {
-    margin-bottom: 20px;
+    font-size: 1.5rem; /* Adjust font size for smaller screens */
   }
-  
-  .logs-container .MuiDataGrid-root {
-    background-color: white;
-  }
-  
+}

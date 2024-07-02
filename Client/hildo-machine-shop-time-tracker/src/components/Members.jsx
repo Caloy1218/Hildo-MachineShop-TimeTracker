@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, IconButton } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, IconButton, Grid, Container } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon, QrCode as QrCodeIcon } from '@mui/icons-material';
 import { db } from '../firebaseConfig'; // Adjust the path as necessary
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
@@ -26,7 +26,7 @@ const Members = () => {
   }, []);
 
   const handleClickOpen = (row = null) => {
-    setCurrentRow(row);
+    setCurrentRow(row ? { ...row } : { name: '', age: '', department: '', qrPic: '' });
     setEditMode(!!row);
     setOpen(true);
   };
@@ -38,25 +38,34 @@ const Members = () => {
   };
 
   const handleSave = async () => {
-    if (editMode) {
-      const memberDoc = doc(db, 'members', currentRow.id);
-      await updateDoc(memberDoc, currentRow);
-    } else {
-      await addDoc(membersCollectionRef, currentRow);
+    try {
+      if (editMode) {
+        const memberDoc = doc(db, 'members', currentRow.id);
+        await updateDoc(memberDoc, currentRow);
+      } else {
+        const newDocRef = await addDoc(membersCollectionRef, currentRow);
+        setCurrentRow({ ...currentRow, id: newDocRef.id });
+      }
+
+      const data = await getDocs(membersCollectionRef);
+      setRows(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+
+      handleClose();
+    } catch (error) {
+      console.error('Error saving member:', error);
     }
-
-    const data = await getDocs(membersCollectionRef);
-    setRows(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
-
-    handleClose();
   };
 
   const handleDelete = async (id) => {
-    const memberDoc = doc(db, 'members', id);
-    await deleteDoc(memberDoc);
+    try {
+      const memberDoc = doc(db, 'members', id);
+      await deleteDoc(memberDoc);
 
-    const data = await getDocs(membersCollectionRef);
-    setRows(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      const data = await getDocs(membersCollectionRef);
+      setRows(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+    } catch (error) {
+      console.error('Error deleting member:', error);
+    }
   };
 
   const handleInputChange = (e) => {
@@ -65,7 +74,7 @@ const Members = () => {
   };
 
   const handleQrOpen = (row) => {
-    setQrText(row.id);
+    setQrText(row.name); // Pass name instead of id
     setQrOpen(true);
   };
 
@@ -114,20 +123,22 @@ const Members = () => {
   ];
 
   return (
-    <div className="members-container">
+    <Container className="members-container">
       <h1>Members</h1>
       <Button
         variant="contained"
         color="primary"
         startIcon={<AddIcon />}
         onClick={() => handleClickOpen()}
+        style={{ marginBottom: '20px' }}
       >
         Add Member
       </Button>
       <div style={{ height: 400, width: '100%', marginTop: 20 }}>
-        <DataGrid rows={rows} columns={columns} pageSize={5} checkboxSelection />
+        <DataGrid rows={rows} columns={columns} pageSize={5} checkboxSelection
+          autoHeight />
       </div>
-      <Dialog open={open} onClose={handleClose}>
+      <Dialog open={open} onClose={handleClose} maxWidth="xs">
         <DialogTitle>{editMode ? 'Edit Member' : 'Add Member'}</DialogTitle>
         <DialogContent>
           <DialogContentText>
@@ -170,16 +181,16 @@ const Members = () => {
           <Button onClick={handleSave}>{editMode ? 'Save' : 'Add'}</Button>
         </DialogActions>
       </Dialog>
-      <Dialog open={qrOpen} onClose={handleQrClose}>
+      <Dialog open={qrOpen} onClose={handleQrClose} maxWidth="xs">
         <DialogTitle>QR Code</DialogTitle>
         <DialogContent>
-          <QRCodeGenerator text={qrText} />
+          <QRCodeGenerator memberName={qrText} /> {/* Pass memberName instead of memberId */}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleQrClose}>Close</Button>
         </DialogActions>
       </Dialog>
-    </div>
+    </Container>
   );
 };
 
