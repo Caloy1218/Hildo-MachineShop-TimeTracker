@@ -3,7 +3,7 @@ import QrScanner from 'react-qr-scanner';
 import { db } from '../firebaseConfig';
 import { collection, addDoc, query, where, getDocs, updateDoc, Timestamp } from 'firebase/firestore';
 import debounce from 'lodash/debounce';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box, useMediaQuery, useTheme } from '@mui/material';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box, useMediaQuery, useTheme, IconButton } from '@mui/material';
 import FlipCameraIosIcon from '@mui/icons-material/FlipCameraIos';
 import './QRScanner.css';
 
@@ -27,13 +27,13 @@ const QrScannerComponent = () => {
       setResult(data);
       setIsCameraActive(false);
       setBorderColor('green'); // Change border color to green when QR is read
-  
+
       try {
         const fullName = data; // Assuming data directly provides the fullName
-  
+
         const q = query(collection(db, 'logs'), where('fullName', '==', fullName), where('timeOut', '==', null));
         const querySnapshot = await getDocs(q);
-  
+
         if (!querySnapshot.empty) {
           const logDoc = querySnapshot.docs[0];
           await updateDoc(logDoc.ref, {
@@ -48,13 +48,13 @@ const QrScannerComponent = () => {
           });
           setDialogMessage(`${fullName} timed in successfully!`);
         }
-  
+
         setDialogOpen(true);
       } catch (error) {
         console.error("Error processing QR code.", error);
         alert('Error processing QR code.');
       }
-  
+
       setTimeout(() => {
         setIsProcessingScan(false);
         setLastScanned('');
@@ -86,7 +86,7 @@ const QrScannerComponent = () => {
   };
 
   const toggleCamera = () => {
-    setFacingMode(prevMode => (prevMode === 'environment' ? 'user' : 'environment'));
+    setFacingMode((prevMode) => (prevMode === 'environment' ? 'user' : 'environment'));
   };
 
   const previewStyle = {
@@ -117,14 +117,12 @@ const QrScannerComponent = () => {
             facingMode={facingMode}
           />
           {isMobile && (
-            <Button 
-              variant="contained" 
+            <IconButton 
               onClick={toggleCamera} 
-              startIcon={<FlipCameraIosIcon />}
               className="flip-camera-button"
             >
-              Flip Camera
-            </Button>
+              <FlipCameraIosIcon />
+            </IconButton>
           )}
         </Box>
       )}
