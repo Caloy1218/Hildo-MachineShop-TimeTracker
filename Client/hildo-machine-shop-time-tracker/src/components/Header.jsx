@@ -6,10 +6,10 @@ import GroupIcon from '@mui/icons-material/Group';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import QrCodeIcon from '@mui/icons-material/QrCode';
 import { Link } from 'react-router-dom';
-import HMS from './Assets/Hildo-Machine-shop-Icon.jpg';
+import HMS from './Assets/Hildo-Machine-shop-Icon-no-bg.png';
 import './Header.css';
 
-const Header = () => {
+const Header = ({ darkMode }) => {
   const [drawerOpen, setDrawerOpen] = React.useState(false);
   const [value, setValue] = React.useState(0);
 
@@ -33,7 +33,13 @@ const Header = () => {
   ];
 
   return (
-    <AppBar position="static">
+    <AppBar 
+      position="static" 
+      sx={{ 
+        backgroundColor: darkMode ? '#000000' : '#FFFFFF', 
+        color: darkMode ? '#FFFFFF' : '#3f3f3f' 
+      }}
+    >
       <Toolbar>
         <img className='HMS-icon' src={HMS} alt="HMS-ICON" />
         <Typography variant="h6" component="div" sx={{ flexGrow: 1, marginLeft: 2 }}>
@@ -57,7 +63,7 @@ const Header = () => {
               component={Link}
               to={item.link}
               sx={{
-                color: 'white',
+                color: darkMode ? 'white' : '#3f3f3f',
                 '&.Mui-selected': {
                   color: '#e97619',
                 },
@@ -79,7 +85,6 @@ const Header = () => {
         >
           <MenuIcon />
         </IconButton>
-        {/* Drawer for mobile view */}
         <Drawer
           anchor="left"
           open={drawerOpen}

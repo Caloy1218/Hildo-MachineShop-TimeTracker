@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, IconButton, Grid, Container } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, IconButton, Container, Avatar } from '@mui/material';
 import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon, QrCode as QrCodeIcon } from '@mui/icons-material';
 import { db } from '../firebaseConfig'; // Adjust the path as necessary
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from 'firebase/firestore';
 import QRCodeGenerator from './QRCodeGenerator';
 import './Members.css';
 
-const Members = () => {
+const Members = ({ darkMode }) => {
   const [rows, setRows] = useState([]);
   const [open, setOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [currentRow, setCurrentRow] = useState(null);
   const [qrOpen, setQrOpen] = useState(false);
   const [qrText, setQrText] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
   const membersCollectionRef = collection(db, 'members');
 
   useEffect(() => {
@@ -56,16 +58,29 @@ const Members = () => {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDeleteClick = (id) => {
+    setDeleteTargetId(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     try {
-      const memberDoc = doc(db, 'members', id);
+      const memberDoc = doc(db, 'members', deleteTargetId);
       await deleteDoc(memberDoc);
 
       const data = await getDocs(membersCollectionRef);
       setRows(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+
+      setDeleteDialogOpen(false);
+      setDeleteTargetId(null);
     } catch (error) {
       console.error('Error deleting member:', error);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setDeleteTargetId(null);
   };
 
   const handleInputChange = (e) => {
@@ -83,7 +98,24 @@ const Members = () => {
     setQrText('');
   };
 
+  const getAvatarInitials = (name) => {
+    if (!name) return '';
+    const initials = name.split(' ').map((part) => part.charAt(0)).join('');
+    return initials.toUpperCase();
+  };
+
   const columns = [
+    {
+      field: 'avatar',
+      headerName: '',
+      width: 100,
+      renderCell: (params) => (
+        <Avatar sx={{fontSize:'10px',
+          margin:'auto',
+          marginTop:'5px'
+        }}>{getAvatarInitials(params.row.name)}</Avatar>
+      ),
+    },
     { field: 'name', headerName: 'Name', width: 150 },
     { field: 'age', headerName: 'Age', width: 100 },
     { field: 'department', headerName: 'Department', width: 150 },
@@ -104,16 +136,16 @@ const Members = () => {
       renderCell: (params) => (
         <strong>
           <IconButton
-            color="primary"
             size="small"
             onClick={() => handleClickOpen(params.row)}
+            sx={{ color: '#28a745' }} // Edit icon color
           >
             <EditIcon />
           </IconButton>
           <IconButton
-            color="secondary"
             size="small"
-            onClick={() => handleDelete(params.row.id)}
+            onClick={() => handleDeleteClick(params.row.id)}
+            sx={{ color: '#dc3545' }} // Delete icon color
           >
             <DeleteIcon />
           </IconButton>
@@ -123,7 +155,7 @@ const Members = () => {
   ];
 
   return (
-    <Container className="members-container">
+    <Container className={`members-container ${darkMode ? 'dark-mode' : ''}`}>
       <h1>Members</h1>
       <Button
         variant="contained"
@@ -135,8 +167,17 @@ const Members = () => {
         Add Member
       </Button>
       <div style={{ height: 400, width: '100%', marginTop: 20 }}>
-        <DataGrid rows={rows} columns={columns} pageSize={5} checkboxSelection
-          autoHeight />
+        <DataGrid 
+          rows={rows} 
+          columns={columns} 
+          pageSize={5} 
+          autoHeight 
+          disableSelectionOnClick // Disable checkbox selection
+          sx={{
+            backgroundColor: darkMode ? '#2e2e2e' : 'inherit',
+            color: darkMode ? 'white' : 'inherit',
+          }}
+        />
       </div>
       <Dialog open={open} onClose={handleClose} maxWidth="xs">
         <DialogTitle>{editMode ? 'Edit Member' : 'Add Member'}</DialogTitle>
@@ -154,6 +195,11 @@ const Members = () => {
             variant="standard"
             value={currentRow?.name || ''}
             onChange={handleInputChange}
+            sx={{
+              '& .MuiInputBase-input': {
+                color: darkMode ? '#3f3f3f' : 'inherit',
+              },
+            }}
           />
           <TextField
             margin="dense"
@@ -164,6 +210,11 @@ const Members = () => {
             variant="standard"
             value={currentRow?.age || ''}
             onChange={handleInputChange}
+            sx={{
+              '& .MuiInputBase-input': {
+                color: darkMode ? '#3f3f3f' : 'inherit',
+              },
+            }}
           />
           <TextField
             margin="dense"
@@ -174,11 +225,30 @@ const Members = () => {
             variant="standard"
             value={currentRow?.department || ''}
             onChange={handleInputChange}
+            sx={{
+              '& .MuiInputBase-input': {
+                color: darkMode ? '#3f3f3f' : 'inherit',
+              },
+            }}
           />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
           <Button onClick={handleSave}>{editMode ? 'Save' : 'Add'}</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel}>
+        <DialogTitle>Delete Member</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this member?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel}>Cancel</Button>
+          <Button onClick={handleDeleteConfirm} variant="contained" color="error">
+            Delete
+          </Button>
         </DialogActions>
       </Dialog>
       <Dialog open={qrOpen} onClose={handleQrClose} maxWidth="xs">

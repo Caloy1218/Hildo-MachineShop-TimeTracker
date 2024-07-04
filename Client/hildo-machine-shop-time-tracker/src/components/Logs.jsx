@@ -95,10 +95,10 @@ const Logs = () => {
       sortable: false,
       renderCell: (params) => (
         <div>
-          <IconButton onClick={() => handleEdit(params.row)}>
+          <IconButton onClick={() => handleEdit(params.row)} sx={{ color: '#28a745' }}>
             <EditIcon />
           </IconButton>
-          <IconButton onClick={() => handleDelete(params.row.id)}>
+          <IconButton onClick={() => handleDelete(params.row.id)} sx={{ color: '#dc3545' }} >
             <DeleteIcon />
           </IconButton>
         </div>

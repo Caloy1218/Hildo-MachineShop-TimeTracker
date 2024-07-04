@@ -110,6 +110,7 @@ const QrScannerComponent = () => {
       {isCameraActive && (
         <Box className="qr-reader-wrapper">
           <QrScanner
+            key={facingMode} // Add this line
             delay={100}
             onScan={handleResult}
             onError={handleError}

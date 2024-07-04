@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { createTheme, ThemeProvider, CssBaseline, AppBar, Toolbar, IconButton, Typography, Button } from '@mui/material';
+import { createTheme, ThemeProvider, CssBaseline, Button } from '@mui/material';
 import { Brightness4, Brightness7 } from '@mui/icons-material';
 import Header from './components/Header';
 import Home from './components/Home';
@@ -35,15 +35,15 @@ const App = () => {
     <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
       <CssBaseline />
       <Router>
-        <Header />
+        <Header darkMode={darkMode} />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/members" element={<Members />} />
+          <Route path="/members" element={<Members darkMode={darkMode} />} />
           <Route path="/logs" element={<Logs />} />
           <Route path="/qr-scanner" element={<QRScanner />} />
         </Routes>
-        <Button sx={{position:'fixed',bottom:'10px',right:'10px'}} onClick={handleToggleDarkMode} color="inherit">
-              {darkMode ? <Brightness7 /> : <Brightness4 />}
+        <Button sx={{ position: 'fixed', bottom: '10px', right: '10px' }} onClick={handleToggleDarkMode} variant="contained">
+          {darkMode ? <Brightness7 /> : <Brightness4 />}
         </Button>
       </Router>
     </ThemeProvider>
