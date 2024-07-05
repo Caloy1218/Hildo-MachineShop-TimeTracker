@@ -110,12 +110,11 @@ const QrScannerComponent = () => {
       {isCameraActive && (
         <Box className="qr-reader-wrapper">
           <QrScanner
-            key={facingMode} // Add this line to ensure the component re-renders
-            delay={100}
-            onScan={handleResult}
-            onError={handleError}
+            delay={300}
             style={previewStyle}
-            facingMode={facingMode}
+            constraints={{ aspectRatio: 1, facingMode: { ideal: facingMode } }}
+            onDecode={handleResult}
+            onError={handleError}
           />
           {isMobile && (
             <IconButton 
