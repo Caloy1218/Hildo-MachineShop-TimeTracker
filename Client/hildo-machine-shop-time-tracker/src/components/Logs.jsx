@@ -152,7 +152,7 @@ const Logs = () => {
               style={{ marginLeft: isMobile ? 'auto' : '10px' }} // Adjust button alignment
             >
               Export Logs
-            </Button>s
+            </Button>
           </Box>
 
           <div style={{ height: isMobile ? 300 : 400, width: '100%', marginBottom: 20 }}>
