@@ -18,6 +18,12 @@ const QrScannerComponent = () => {
   const [dialogMessage, setDialogMessage] = useState('');
   const [borderColor, setBorderColor] = useState('red');
 
+  useEffect(() => {
+    setFacingMode(isMobile ? 'environment' : 'user');
+  }, [isMobile]);
+
+  const [facingMode, setFacingMode] = useState('environment');
+
   const processScan = async (data) => {
     if (data && data !== lastScanned && !isProcessingScan) {
       setIsProcessingScan(true);
@@ -104,12 +110,11 @@ const QrScannerComponent = () => {
       {isCameraActive && (
         <Box className="qr-reader-wrapper">
           <QrScanner
-            key={isMobile ? 'environment' : 'user'}
             delay={100}
             onScan={handleResult}
             onError={handleError}
             style={previewStyle}
-            facingMode={isMobile ? 'environment' : 'user'}
+            facingMode={facingMode}
           />
         </Box>
       )}
