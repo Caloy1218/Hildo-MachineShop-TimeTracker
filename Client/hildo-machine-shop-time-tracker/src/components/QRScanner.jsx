@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import QrScanner from 'react-qr-scanner';
+import React, { useState, useEffect, useRef } from 'react';
+import { BrowserMultiFormatReader, NotFoundException } from '@zxing/browser';
 import { db } from '../firebaseConfig';
 import { collection, addDoc, query, where, getDocs, updateDoc, Timestamp } from 'firebase/firestore';
 import debounce from 'lodash/debounce';
@@ -9,7 +9,7 @@ import './QRScanner.css';
 const QrScannerComponent = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-
+  const videoRef = useRef(null);
   const [result, setResult] = useState('');
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [isProcessingScan, setIsProcessingScan] = useState(false);
@@ -17,11 +17,25 @@ const QrScannerComponent = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMessage, setDialogMessage] = useState('');
   const [borderColor, setBorderColor] = useState('red');
-  const [facingMode, setFacingMode] = useState('environment');
+
+  const codeReader = new BrowserMultiFormatReader();
 
   useEffect(() => {
-    setFacingMode(isMobile ? 'environment' : 'user');
-  }, [isMobile]);
+    if (isCameraActive && videoRef.current) {
+      codeReader.decodeFromVideoDevice(null, videoRef.current, (result, err) => {
+        if (result) {
+          handleResult(result.getText());
+        }
+        if (err && !(err instanceof NotFoundException)) {
+          handleError(err);
+        }
+      });
+
+      return () => {
+        codeReader.reset();
+      };
+    }
+  }, [isCameraActive, videoRef.current]);
 
   const processScan = async (data) => {
     if (data && data !== lastScanned && !isProcessingScan) {
@@ -70,7 +84,7 @@ const QrScannerComponent = () => {
 
   const handleResult = (result) => {
     if (result) {
-      debouncedProcessScan(result.text);
+      debouncedProcessScan(result);
     }
   };
 
@@ -108,13 +122,7 @@ const QrScannerComponent = () => {
       </Button>
       {isCameraActive && (
         <Box className="qr-reader-wrapper">
-          <QrScanner
-            delay={100}
-            onScan={handleResult}
-            onError={handleError}
-            style={previewStyle}
-            facingMode={facingMode}
-          />
+          <video ref={videoRef} style={previewStyle} />
         </Box>
       )}
       {result && (
