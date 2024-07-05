@@ -7,7 +7,9 @@ import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import GetAppIcon from '@mui/icons-material/GetApp';
 import dayjs from 'dayjs';
+import { saveAs } from 'file-saver';
 
 const Logs = () => {
   const theme = useTheme();
@@ -84,6 +86,28 @@ const Logs = () => {
     setFilteredLogs(filtered);
   };
 
+  const handleExportLogs = () => {
+    // Prepare data for export (assuming CSV format)
+    const csvData = [
+      ['Name', 'Time In', 'Time Out'],
+      ...filteredLogs.map(log => [
+        log.fullName,
+        `"${log.timeIn}"`, // Enclose timeIn in quotes to ensure date/time are together
+        `"${log.timeOut}"` // Enclose timeOut in quotes to ensure date/time are together
+      ])
+    ];
+  
+    // Convert data to CSV format
+    const csvContent = csvData.map(row => row.join(',')).join('\n');
+  
+    // Create Blob
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+  
+    // Trigger download using file-saver
+    saveAs(blob, 'Time in and Time out.csv');
+  };
+  
+
   const columns = [
     { field: 'fullName', headerName: 'Name', flex: 1 },
     { field: 'timeIn', headerName: 'Time In', flex: 1 },
@@ -108,42 +132,56 @@ const Logs = () => {
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
-      <Box p={2}>
+      <Box p={2} className="logs-container">
         <Typography variant="h4" gutterBottom>Check-in/Check-out Logs</Typography>
-        <Box mb={2}>
-          <DatePicker
-            label="Select Date"
-            value={selectedDate}
-            onChange={(newValue) => setSelectedDate(newValue)}
-            renderInput={(params) => <TextField {...params} />}
-          />
-        </Box>
-        <div style={{ height: isMobile ? 300 : 400, width: '100%', marginBottom: 20 }}>
-          <DataGrid rows={filteredLogs} columns={columns} pageSize={5} />
-        </div>
-        <Dialog open={openDialog} onClose={handleCloseDialog}>
-          <DialogTitle>Edit Log</DialogTitle>
-          <DialogContent>
-            <DialogContentText>
-              Edit the name for this log entry.
-            </DialogContentText>
-            <TextField
-              autoFocus
-              margin="dense"
-              label="Full Name"
-              type="text"
-              fullWidth
-              variant="standard"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
+          
+          {/* Adjusted structure for Export Logs button */}
+          <Box className="logs-export-button">
+            <DatePicker
+              label="Select Date"
+              value={selectedDate}
+              onChange={(newValue) => setSelectedDate(newValue)}
+              renderInput={(params) => <TextField {...params} />}
             />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Cancel</Button>
-            <Button onClick={handleSubmit}>Save</Button>
-          </DialogActions>
-        </Dialog>
-      </Box>
+            <Button
+            className='exportButton'
+              variant="contained"
+              color="primary"
+              startIcon={<GetAppIcon />}
+              onClick={handleExportLogs}
+              style={{ marginLeft: isMobile ? 'auto' : '10px' }} // Adjust button alignment
+            >
+              Export Logs
+            </Button>s
+          </Box>
+
+          <div style={{ height: isMobile ? 300 : 400, width: '100%', marginBottom: 20 }}>
+            <DataGrid rows={filteredLogs} columns={columns} pageSize={5} />
+          </div>
+
+          <Dialog open={openDialog} onClose={handleCloseDialog}>
+            <DialogTitle>Edit Log</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                Edit the name for this log entry.
+              </DialogContentText>
+              <TextField
+                autoFocus
+                margin="dense"
+                label="Full Name"
+                type="text"
+                fullWidth
+                variant="standard"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDialog}>Cancel</Button>
+              <Button onClick={handleSubmit}>Save</Button>
+            </DialogActions>
+          </Dialog>
+        </Box>
     </LocalizationProvider>
   );
 };

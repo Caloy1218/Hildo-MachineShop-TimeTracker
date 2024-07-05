@@ -10,6 +10,12 @@
   background-color: white;
 }
 
+.logs-export-button {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px; /* Add margin bottom for spacing */
+}
+
 @media (max-width: 600px) {
   .logs-container {
     padding: 10px;
@@ -17,5 +23,8 @@
 
   .logs-container h2 {
     font-size: 1.5rem; /* Adjust font size for smaller screens */
+  }
+  .logs-export-button .exportButton{
+    margin-top:20px;
   }
 }
