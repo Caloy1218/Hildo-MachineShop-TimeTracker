@@ -3,8 +3,7 @@ import QrScanner from 'react-qr-scanner';
 import { db } from '../firebaseConfig';
 import { collection, addDoc, query, where, getDocs, updateDoc, Timestamp } from 'firebase/firestore';
 import debounce from 'lodash/debounce';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box, useMediaQuery, useTheme, IconButton } from '@mui/material';
-import FlipCameraIosIcon from '@mui/icons-material/FlipCameraIos';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box, useMediaQuery, useTheme } from '@mui/material';
 import './QRScanner.css';
 
 const QrScannerComponent = () => {
@@ -17,7 +16,6 @@ const QrScannerComponent = () => {
   const [lastScanned, setLastScanned] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMessage, setDialogMessage] = useState('');
-  const [facingMode, setFacingMode] = useState('environment');
   const [borderColor, setBorderColor] = useState('red');
 
   const processScan = async (data) => {
@@ -85,10 +83,6 @@ const QrScannerComponent = () => {
     setIsCameraActive(true);
   };
 
-  const toggleCamera = () => {
-    setFacingMode((prevMode) => (prevMode === 'environment' ? 'user' : 'environment'));
-  };
-
   const previewStyle = {
     height: 240,
     width: isMobile ? '100%' : 320,
@@ -110,27 +104,12 @@ const QrScannerComponent = () => {
       {isCameraActive && (
         <Box className="qr-reader-wrapper">
           <QrScanner
-            key={facingMode} // Add this line
             delay={100}
             onScan={handleResult}
             onError={handleError}
             style={previewStyle}
-            facingMode={facingMode}
+            facingMode={isMobile ? 'environment' : 'user'} // Automatically use back camera on mobile
           />
-          {isMobile && (
-            <IconButton 
-              onClick={toggleCamera} 
-              className="flip-camera-button"
-              style={{
-                position: 'absolute',
-                top: 10,
-                right: 10,
-                color: 'white',
-              }}
-            >
-              <FlipCameraIosIcon />
-            </IconButton>
-          )}
         </Box>
       )}
       {result && (
