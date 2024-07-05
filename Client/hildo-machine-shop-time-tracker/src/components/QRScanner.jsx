@@ -121,6 +121,12 @@ const QrScannerComponent = () => {
             <IconButton 
               onClick={toggleCamera} 
               className="flip-camera-button"
+              style={{
+                position: 'absolute',
+                top: 10,
+                right: 10,
+                color: 'white',
+              }}
             >
               <FlipCameraIosIcon />
             </IconButton>
