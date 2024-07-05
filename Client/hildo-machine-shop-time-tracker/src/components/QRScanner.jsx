@@ -17,12 +17,11 @@ const QrScannerComponent = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMessage, setDialogMessage] = useState('');
   const [borderColor, setBorderColor] = useState('red');
+  const [facingMode, setFacingMode] = useState('environment');
 
   useEffect(() => {
     setFacingMode(isMobile ? 'environment' : 'user');
   }, [isMobile]);
-
-  const [facingMode, setFacingMode] = useState('environment');
 
   const processScan = async (data) => {
     if (data && data !== lastScanned && !isProcessingScan) {
