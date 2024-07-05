@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import QrScanner from 'react-qr-scanner';
+import React, { useState } from 'react';
+import { QrReader } from 'react-qr-reader'; // Make sure this is the correct import
 import { db } from '../firebaseConfig';
 import { collection, addDoc, query, where, getDocs, updateDoc, Timestamp } from 'firebase/firestore';
 import debounce from 'lodash/debounce';
@@ -67,7 +67,7 @@ const QrScannerComponent = () => {
 
   const handleResult = (result) => {
     if (result) {
-      debouncedProcessScan(result.text);
+      debouncedProcessScan(result);
     }
   };
 
@@ -109,11 +109,11 @@ const QrScannerComponent = () => {
       </Button>
       {isCameraActive && (
         <Box className="qr-reader-wrapper">
-          <QrScanner
+          <QrReader
             delay={300}
             style={previewStyle}
             constraints={{ aspectRatio: 1, facingMode: { ideal: facingMode } }}
-            onDecode={handleResult}
+            onResult={handleResult}
             onError={handleError}
           />
           {isMobile && (
