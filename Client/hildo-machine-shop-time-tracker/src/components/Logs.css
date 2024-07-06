@@ -12,8 +12,9 @@
 
 .logs-export-button {
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 10px; /* Add margin bottom for spacing */
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
 @media (max-width: 600px) {
@@ -24,7 +25,14 @@
   .logs-container h2 {
     font-size: 1.5rem; /* Adjust font size for smaller screens */
   }
-  .logs-export-button .exportButton{
-    margin-top:20px;
+
+  .logs-export-button {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .logs-export-button .exportButton {
+    width: 100%;
+    margin-top: 10px;
   }
 }

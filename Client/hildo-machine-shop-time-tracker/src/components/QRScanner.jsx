@@ -3,8 +3,7 @@ import QrScanner from 'react-qr-scanner';
 import { db } from '../firebaseConfig';
 import { collection, addDoc, query, where, getDocs, updateDoc, Timestamp } from 'firebase/firestore';
 import debounce from 'lodash/debounce';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box, useMediaQuery, useTheme, IconButton } from '@mui/material';
-import FlipCameraIosIcon from '@mui/icons-material/FlipCameraIos';
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box, useMediaQuery, useTheme } from '@mui/material';
 import './QRScanner.css';
 
 const QrScannerComponent = () => {
@@ -17,8 +16,13 @@ const QrScannerComponent = () => {
   const [lastScanned, setLastScanned] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogMessage, setDialogMessage] = useState('');
-  const [facingMode, setFacingMode] = useState('environment');
   const [borderColor, setBorderColor] = useState('red');
+
+  useEffect(() => {
+    setFacingMode(isMobile ? 'environment' : 'user');
+  }, [isMobile]);
+
+  const [facingMode, setFacingMode] = useState('environment');
 
   const processScan = async (data) => {
     if (data && data !== lastScanned && !isProcessingScan) {
@@ -39,14 +43,14 @@ const QrScannerComponent = () => {
           await updateDoc(logDoc.ref, {
             timeOut: Timestamp.now(),
           });
-          setDialogMessage(`${fullName} timed out successfully!`); // Fix template literal
+          setDialogMessage(`${fullName} timed out successfully!`); // Corrected string interpolation
         } else {
           await addDoc(collection(db, 'logs'), {
             fullName,
             timeIn: Timestamp.now(),
             timeOut: null,
           });
-          setDialogMessage(`${fullName} timed in successfully!`); // Fix template literal
+          setDialogMessage(`${fullName} timed in successfully!`); // Corrected string interpolation
         }
 
         setDialogOpen(true);
@@ -85,14 +89,10 @@ const QrScannerComponent = () => {
     setIsCameraActive(true);
   };
 
-  const toggleCamera = () => {
-    setFacingMode((prevMode) => (prevMode === 'environment' ? 'user' : 'environment'));
-  };
-
   const previewStyle = {
     height: 240,
     width: isMobile ? '100%' : 320,
-    border: `4px solid ${borderColor}`, // Use dynamic border color
+    border: `4px solid ${borderColor}`, // Corrected dynamic border color
     borderRadius: 8,
     marginBottom: 10,
     display: 'flex',
@@ -110,27 +110,12 @@ const QrScannerComponent = () => {
       {isCameraActive && (
         <Box className="qr-reader-wrapper">
           <QrScanner
-            key={facingMode} // Add this line
             delay={100}
             onScan={handleResult}
             onError={handleError}
             style={previewStyle}
             facingMode={facingMode}
           />
-          {isMobile && (
-            <IconButton 
-              onClick={toggleCamera} 
-              className="flip-camera-button"
-              style={{
-                position: 'absolute',
-                top: 10,
-                right: 10,
-                color: 'white',
-              }}
-            >
-              <FlipCameraIosIcon />
-            </IconButton>
-          )}
         </Box>
       )}
       {result && (
