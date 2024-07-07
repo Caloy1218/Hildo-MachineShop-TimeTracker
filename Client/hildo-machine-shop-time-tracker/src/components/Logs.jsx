@@ -90,11 +90,31 @@ const Logs = () => {
   };
 
   const handleExport = () => {
-    const csvContent = 'data:text/csv;charset=utf-8,' + filteredLogs.map(log => `${log.fullName},${log.timeIn},${log.timeOut}`).join('\n');
+    // Get current month and year for filename
+    const currentMonth = dayjs().format('YYYY-MM');
+    const filename = `logs_${currentMonth}.csv`;
+  
+    // Prepare column headers
+    const headers = ['Full Name', 'Time In', 'Time Out'];
+    
+    // Prepare rows data
+    const rows = filteredLogs.map(log => [
+      log.fullName,
+      log.timeIn,
+      log.timeOut,
+    ]);
+    
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+    
+    // Create Blob and save as CSV file
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    saveAs(blob, 'logs.csv');
+    saveAs(blob, filename);
   };
-
+  
   const columns = [
     { field: 'fullName', headerName: 'Full Name', width: 200 },
     { field: 'timeIn', headerName: 'Time In', width: 200 },
