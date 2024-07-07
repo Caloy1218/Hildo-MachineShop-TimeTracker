@@ -6,9 +6,6 @@
   margin-bottom: 20px;
 }
 
-.logs-container .MuiDataGrid-root {
-  background-color: white;
-}
 
 .logs-export-button {
   display: flex;
